@@ -1,0 +1,50 @@
+{
+    "name": "vntrungld/laravel-crisp",
+    "description": ":package_description",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Author Name",
+            "email": "author@email.com",
+            "homepage": "http://author.com"
+        }
+    ],
+    "homepage": "https://github.com/vntrungld/laravel-crisp",
+    "keywords": ["Laravel", "LaravelCrisp"],
+    "require": {
+        "illuminate/support": "^9.0|^10.0|^11.0|^12.0",
+        "crispchat/php-crisp-api": "^1.7",
+        "symfony/http-client": "^7.3",
+        "php-http/httplug": "^2.4",
+        "nyholm/psr7": "^1.8"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~9.0",
+        "orchestra/testbench": "~7"
+    },
+    "autoload": {
+        "psr-4": {
+            "Vntrungld\\LaravelCrisp\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Vntrungld\\LaravelCrisp\\Tests\\": "tests"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Vntrungld\\LaravelCrisp\\LaravelCrispServiceProvider"
+            ],
+            "aliases": {
+                "LaravelCrisp": "Vntrungld\\LaravelCrisp\\Facades\\LaravelCrisp"
+            }
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
+    }
+}
