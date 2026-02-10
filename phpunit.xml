@@ -5,6 +5,7 @@
          colors="true"
          processIsolation="false"
          stopOnFailure="false"
+         failOnWarning="false"
          backupGlobals="false">
     <testsuites>
         <testsuite name="Package">
