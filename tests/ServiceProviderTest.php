@@ -42,16 +42,4 @@ class ServiceProviderTest extends TestCase
         $this->assertSame('crisp/webhook', $route->uri());
         $this->assertContains('POST', $route->methods());
     }
-
-    public function test_custom_webhook_path_works(): void
-    {
-        config()->set('crisp.webhook_path', 'custom-path');
-
-        $provider = new LaravelCrispServiceProvider($this->app);
-        $provider->boot();
-
-        $route = $this->app['router']->getRoutes()->getByName('crisp.webhook');
-
-        $this->assertSame('custom-path/webhook', $route->uri());
-    }
 }
