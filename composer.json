@@ -1,12 +1,11 @@
 {
     "name": "vntrungld/laravel-crisp",
-    "description": ":package_description",
+    "description": "A Laravel package for seamless integration with Crisp Chat API including webhook handling and signature verification",
     "license": "MIT",
     "authors": [
         {
-            "name": "Author Name",
-            "email": "author@email.com",
-            "homepage": "http://author.com"
+            "name": "vntrungld",
+            "homepage": "https://github.com/vntrungld"
         }
     ],
     "homepage": "https://github.com/vntrungld/laravel-crisp",
@@ -19,8 +18,8 @@
         "nyholm/psr7": "^1.8"
     },
     "require-dev": {
-        "phpunit/phpunit": "~9.0",
-        "orchestra/testbench": "~7"
+        "phpunit/phpunit": "^9.5|^10.0|^11.0",
+        "orchestra/testbench": "^7.0|^8.0|^9.0|^10.0"
     },
     "autoload": {
         "psr-4": {
@@ -41,6 +40,10 @@
                 "LaravelCrisp": "Vntrungld\\LaravelCrisp\\Facades\\LaravelCrisp"
             }
         }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
     },
     "config": {
         "allow-plugins": {

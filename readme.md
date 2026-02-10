@@ -1,43 +1,319 @@
-# LaravelCrisp
+# Laravel Crisp
 
 [![Latest Version on Packagist][ico-version]][link-packagist]
 [![Total Downloads][ico-downloads]][link-downloads]
-[![Build Status][ico-travis]][link-travis]
-[![StyleCI][ico-styleci]][link-styleci]
+[![Tests][ico-tests]][link-tests]
 
-This is where your description should go. Take a look at [contributing.md](contributing.md) to see a to do list.
+A Laravel package that provides a seamless integration with [Crisp Chat](https://crisp.chat/). This package wraps the official Crisp PHP API client and adds Laravel-specific features like webhook handling with signature verification.
+
+## Features
+
+- 🚀 Easy integration with Crisp Chat API
+- 🔐 Webhook signature verification for security
+- 📢 Event-driven webhook handling
+- ⚙️ Configurable webhook endpoints
+- 🎯 Laravel 9+ support
+- 🧪 Comprehensive test coverage
+
+## Requirements
+
+- PHP 8.1 or higher
+- Laravel 9.0 or higher
 
 ## Installation
 
-Via Composer
+Install the package via Composer:
 
 ```bash
 composer require vntrungld/laravel-crisp
 ```
 
+The package will automatically register its service provider.
+
+### Publish Configuration
+
+Publish the configuration file:
+
+```bash
+php artisan vendor:publish --tag="laravel-crisp.config"
+```
+
+This will create a `config/crisp.php` file in your application.
+
+## Configuration
+
+Add the following environment variables to your `.env` file:
+
+```env
+CRISP_TIER=plugin
+CRISP_TOKEN_ID=your-token-id
+CRISP_TOKEN_KEY=your-token-key
+CRISP_SIGNING_SECRET=your-signing-secret
+CRISP_WEBHOOK_PATH=crisp
+CRISP_PLUGIN_ID=your-plugin-id
+```
+
+### Configuration Options
+
+- `tier`: The Crisp API tier (default: `plugin`)
+- `token_id`: Your Crisp API token identifier
+- `token_key`: Your Crisp API token key
+- `signing_secret`: Secret for webhook signature verification
+- `webhook_path`: Base path for webhook routes (default: `crisp`)
+- `plugin_id`: Your Crisp plugin identifier
+
 ## Usage
 
-## Change log
+### Using the Crisp Client
 
-Please see the [changelog](changelog.md) for more information on what has changed recently.
+You can access the Crisp client in several ways:
+
+#### Via Facade
+
+```php
+use LaravelCrisp;
+
+// Get the Crisp client instance
+$client = LaravelCrisp::client();
+
+// Example: Send a message
+$client->websiteConversations->sendMessageInConversation(
+    'website_id',
+    'session_id',
+    [
+        'type' => 'text',
+        'content' => 'Hello from Laravel!'
+    ]
+);
+```
+
+#### Via Dependency Injection
+
+```php
+use Vntrungld\LaravelCrisp\LaravelCrisp;
+
+class YourController extends Controller
+{
+    public function __construct(protected LaravelCrisp $crisp)
+    {
+    }
+
+    public function sendMessage()
+    {
+        $client = $this->crisp->client();
+        // Use the client...
+    }
+}
+```
+
+#### Via Container
+
+```php
+$crisp = app('laravel-crisp');
+$client = $crisp->client();
+```
+
+### Handling Webhooks
+
+The package automatically registers a webhook endpoint at `/crisp/webhook` (or your custom path).
+
+#### Webhook Signature Verification
+
+Webhook signature verification is automatically enabled when you set `CRISP_SIGNING_SECRET`. This ensures that incoming webhooks are genuinely from Crisp.
+
+The middleware will:
+1. Extract the timestamp and signature from request headers
+2. Compute the expected signature using HMAC-SHA256
+3. Compare signatures using a timing-safe comparison
+4. Reject requests with invalid signatures (401 response)
+
+#### Listening to Webhook Events
+
+When a webhook is received, a `WebhookReceived` event is dispatched. You can listen to this event in your application:
+
+```php
+use Illuminate\Support\Facades\Event;
+use Vntrungld\LaravelCrisp\Events\WebhookReceived;
+
+Event::listen(WebhookReceived::class, function (WebhookReceived $event) {
+    $payload = $event->payload;
+
+    // Handle the webhook payload
+    logger('Crisp webhook received', $payload);
+
+    // Example: Handle message sent event
+    if ($payload['event'] === 'message:send') {
+        // Process the message...
+    }
+});
+```
+
+Or create a dedicated listener:
+
+```php
+php artisan make:listener HandleCrispWebhook
+```
+
+```php
+namespace App\Listeners;
+
+use Vntrungld\LaravelCrisp\Events\WebhookReceived;
+
+class HandleCrispWebhook
+{
+    public function handle(WebhookReceived $event): void
+    {
+        $payload = $event->payload;
+
+        match($payload['event']) {
+            'message:send' => $this->handleMessageSent($payload),
+            'message:received' => $this->handleMessageReceived($payload),
+            // ... other event types
+            default => null,
+        };
+    }
+
+    protected function handleMessageSent(array $payload): void
+    {
+        // Your logic here
+    }
+
+    protected function handleMessageReceived(array $payload): void
+    {
+        // Your logic here
+    }
+}
+```
+
+Register the listener in your `EventServiceProvider`:
+
+```php
+use Vntrungld\LaravelCrisp\Events\WebhookReceived;
+use App\Listeners\HandleCrispWebhook;
+
+protected $listen = [
+    WebhookReceived::class => [
+        HandleCrispWebhook::class,
+    ],
+];
+```
+
+### Crisp API Examples
+
+For detailed API documentation, refer to the [official Crisp API documentation](https://docs.crisp.chat/api/v1/).
+
+#### Get Website Conversations
+
+```php
+$conversations = LaravelCrisp::client()
+    ->websiteConversations
+    ->getConversationsList('website_id');
+```
+
+#### Get Conversation Messages
+
+```php
+$messages = LaravelCrisp::client()
+    ->websiteConversations
+    ->getMessagesInConversation('website_id', 'session_id');
+```
+
+#### Send a Text Message
+
+```php
+LaravelCrisp::client()
+    ->websiteConversations
+    ->sendMessageInConversation(
+        'website_id',
+        'session_id',
+        [
+            'type' => 'text',
+            'content' => 'Your message here',
+            'from' => 'operator',
+            'origin' => 'chat'
+        ]
+    );
+```
+
+#### Update Conversation Meta
+
+```php
+LaravelCrisp::client()
+    ->websiteConversations
+    ->updateConversationMetas(
+        'website_id',
+        'session_id',
+        [
+            'nickname' => 'John Doe',
+            'email' => 'john@example.com'
+        ]
+    );
+```
 
 ## Testing
+
+The package includes comprehensive tests covering all major functionality:
 
 ```bash
 composer test
 ```
 
+### Running Tests for Specific Laravel Versions
+
+The package supports Laravel 9, 10, 11, and 12. The test suite runs against all versions in CI.
+
+To test locally with a specific Laravel version:
+
+```bash
+# Laravel 9
+composer require "laravel/framework:^9.0" "orchestra/testbench:^7.0" --dev
+composer test
+
+# Laravel 10
+composer require "laravel/framework:^10.0" "orchestra/testbench:^8.0" --dev
+composer test
+
+# Laravel 11
+composer require "laravel/framework:^11.0" "orchestra/testbench:^9.0" --dev
+composer test
+
+# Laravel 12
+composer require "laravel/framework:^12.0" "orchestra/testbench:^10.0" --dev
+composer test
+```
+
+## Laravel Version Support
+
+| Laravel Version | PHP Version | Package Support |
+|----------------|-------------|-----------------|
+| 9.x            | 8.1, 8.2    | ✅              |
+| 10.x           | 8.1, 8.2, 8.3 | ✅              |
+| 11.x           | 8.2, 8.3    | ✅              |
+| 12.x           | 8.2, 8.3    | ✅              |
+
+The **minimum supported Laravel version is 9.0**.
+
+## Security
+
+### Webhook Signature Verification
+
+Always set `CRISP_SIGNING_SECRET` in production to ensure webhook authenticity. Without this, anyone could send fake webhooks to your application.
+
+### Reporting Security Issues
+
+If you discover any security-related issues, please email security@example.com instead of using the issue tracker.
+
+## Change Log
+
+Please see the [changelog](changelog.md) for more information on what has changed recently.
+
 ## Contributing
 
 Please see [contributing.md](contributing.md) for details and a todolist.
 
-## Security
-
-If you discover any security related issues, please email author@email.com instead of using the issue tracker.
-
 ## Credits
 
-- [Author Name][link-author]
+- [vntrungld][link-author]
 - [All Contributors][link-contributors]
 
 ## License
@@ -46,12 +322,10 @@ MIT. Please see the [license file](license.md) for more information.
 
 [ico-version]: https://img.shields.io/packagist/v/vntrungld/laravel-crisp.svg?style=flat-square
 [ico-downloads]: https://img.shields.io/packagist/dt/vntrungld/laravel-crisp.svg?style=flat-square
-[ico-travis]: https://img.shields.io/travis/vntrungld/laravel-crisp/master.svg?style=flat-square
-[ico-styleci]: https://styleci.io/repos/12345678/shield
+[ico-tests]: https://img.shields.io/github/actions/workflow/status/vntrungld/laravel-crisp/tests.yml?branch=master&label=tests&style=flat-square
 
 [link-packagist]: https://packagist.org/packages/vntrungld/laravel-crisp
 [link-downloads]: https://packagist.org/packages/vntrungld/laravel-crisp
-[link-travis]: https://travis-ci.org/vntrungld/laravel-crisp
-[link-styleci]: https://styleci.io/repos/12345678
+[link-tests]: https://github.com/vntrungld/laravel-crisp/actions
 [link-author]: https://github.com/vntrungld
 [link-contributors]: ../../contributors

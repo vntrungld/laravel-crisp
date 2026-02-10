@@ -1,21 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Vntrungld\LaravelCrisp\Events;
 
 use Illuminate\Foundation\Events\Dispatchable;
-use Illuminate\Queue\SerializesModels;
 
 class WebhookReceived
 {
-    use Dispatchable, SerializesModels;
+    use Dispatchable;
 
-    public array $payload;
-
-    /**
-     * Create a new event instance.
-     */
-    public function __construct(array $payload)
+    public function __construct(public readonly array $payload)
     {
-        $this->payload = $payload;
     }
 }
