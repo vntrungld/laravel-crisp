@@ -78,7 +78,6 @@ class CrispSettingsTest extends TestCase
                 'properties' => ['api_key' => ['type' => 'string']],
             ]),
             '*/plugin/*/subscription/*/settings' => Http::sequence()
-                ->push(['data' => []])
                 ->push(['success' => true]),
         ]);
 
@@ -99,7 +98,6 @@ class CrispSettingsTest extends TestCase
                 'properties' => ['api_key' => ['type' => 'string']],
             ]),
             '*/plugin/*/subscription/*/settings' => Http::sequence()
-                ->push(['data' => []])
                 ->push(['error' => 'Invalid'], 400),
         ]);
 
