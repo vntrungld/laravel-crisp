@@ -17,6 +17,9 @@ class LaravelCrispServiceProvider extends ServiceProvider
         }
 
         $this->bootRoutes();
+
+        // Load views
+        $this->loadViewsFrom(__DIR__.'/../resources/views', 'laravel-crisp');
     }
 
     public function register(): void
