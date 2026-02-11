@@ -18,8 +18,14 @@
                 </div>
             @endif
 
-            <!-- Fields placeholder -->
-            <div>Fields will render here</div>
+            <!-- Dynamic Fields -->
+            @foreach($fields as $field)
+                @if($this->isFieldVisible($field))
+                    <div wire:key="field-{{ $field['key'] }}">
+                        @include('laravel-crisp::fields.' . $field['type'], ['field' => $field])
+                    </div>
+                @endif
+            @endforeach
 
             <!-- Submit Button -->
             <div class="flex justify-end pt-4 border-t">
