@@ -87,8 +87,7 @@ class CrispSettingsTest extends TestCase
         ])
             ->set('settings.api_key', 'new-key')
             ->call('save')
-            ->assertSet('successMessage', 'Settings saved successfully!')
-            ->assertSet('errorMessage', null);
+            ->assertDispatched('settings-saved');
     }
 
     public function test_displays_error_on_save_failure(): void
@@ -106,8 +105,7 @@ class CrispSettingsTest extends TestCase
             'token' => 'test-token',
         ])
             ->call('save')
-            ->assertSet('successMessage', null)
-            ->assertSet('errorMessage', 'Crisp API Error: Invalid');
+            ->assertDispatched('settings-save-failed');
     }
 
     public function test_validates_required_fields(): void
