@@ -75,7 +75,6 @@ class CrispSettings extends Component
 
             $this->successMessage = 'Settings saved successfully!';
             $this->errorMessage = null;
-            $this->dispatch('settings-saved');
 
         } catch (ValidationException $e) {
             throw $e;
@@ -87,7 +86,6 @@ class CrispSettings extends Component
                 'error' => $e->getMessage(),
                 'settings' => $this->settings,
             ]);
-            $this->dispatch('settings-save-failed');
 
         } catch (\Exception $e) {
             $this->errorMessage = 'An unexpected error occurred. Please try again.';
