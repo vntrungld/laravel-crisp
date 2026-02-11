@@ -10,6 +10,7 @@ use Orchestra\Testbench\TestCase;
 use Vntrungld\LaravelCrisp\Http\Livewire\CrispSettings;
 use Vntrungld\LaravelCrisp\LaravelCrisp;
 use Vntrungld\LaravelCrisp\Services\SchemaRenderer;
+use Illuminate\Http\Client\Request;
 
 class CrispSettingsTest extends TestCase
 {
@@ -86,8 +87,13 @@ class CrispSettingsTest extends TestCase
             'token' => 'test-token',
         ])
             ->set('settings.api_key', 'new-key')
-            ->call('save')
-            ->assertDispatched('settings-saved');
+            ->call('save');
+
+        Http::assertSent(function (Request $request) {
+            return $request->url() === 'https://api.crisp.chat/v1/plugin/test-plugin/subscription/test-website/settings' &&
+                   $request->method() === 'PATCH' &&
+                   $request['api_key'] === 'new-key';
+        });
     }
 
     public function test_displays_error_on_save_failure(): void
@@ -104,8 +110,11 @@ class CrispSettingsTest extends TestCase
             'websiteId' => 'test-website',
             'token' => 'test-token',
         ])
-            ->call('save')
-            ->assertDispatched('settings-save-failed');
+            ->call('save');
+
+        Http::assertSent(function (Request $request) {
+            return $request->url() === 'https://api.crisp.chat/v1/plugin/test-plugin/subscription/test-website/settings';
+        });
     }
 
     public function test_validates_required_fields(): void
