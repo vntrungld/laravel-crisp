@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Vntrungld\LaravelCrisp\Tests\Feature\Livewire;
 
+use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
 use Orchestra\Testbench\TestCase;
 use Vntrungld\LaravelCrisp\Http\Livewire\CrispSettings;
 use Vntrungld\LaravelCrisp\LaravelCrisp;
+use Vntrungld\LaravelCrisp\Services\SchemaRenderer;
+use Illuminate\Http\Client\Request;
 
 class CrispSettingsTest extends TestCase
 {
@@ -30,12 +33,12 @@ class CrispSettingsTest extends TestCase
 
     public function test_component_can_be_rendered(): void
     {
-        $this->mock(LaravelCrisp::class, function ($mock) {
-            $mock->shouldReceive('getPluginSchema')->andReturn([
+        Http::fake([
+            '*/plugin/*/settings/schema' => Http::response([
                 'properties' => ['api_key' => ['type' => 'string']],
-            ]);
-            $mock->shouldReceive('getWebsiteSettings')->andReturn([]);
-        });
+            ]),
+            '*/plugin/*/subscription/*/settings' => Http::response(['data' => []]),
+        ]);
 
         Livewire::test(CrispSettings::class, [
             'websiteId' => 'test-website',
@@ -56,10 +59,10 @@ class CrispSettingsTest extends TestCase
 
         $settings = ['api_key' => 'test-key'];
 
-        $this->mock(LaravelCrisp::class, function ($mock) use ($schema, $settings) {
-            $mock->shouldReceive('getPluginSchema')->andReturn($schema);
-            $mock->shouldReceive('getWebsiteSettings')->andReturn($settings);
-        });
+        Http::fake([
+            '*/plugin/*/settings/schema' => Http::response($schema),
+            '*/plugin/*/subscription/*/settings' => Http::response(['data' => $settings]),
+        ]);
 
         Livewire::test(CrispSettings::class, [
             'websiteId' => 'test-website',
@@ -71,53 +74,60 @@ class CrispSettingsTest extends TestCase
 
     public function test_saves_settings_successfully(): void
     {
-        $this->mock(LaravelCrisp::class, function ($mock) {
-            $mock->shouldReceive('getPluginSchema')->andReturn([
+        Http::fake([
+            '*/plugin/*/settings/schema' => Http::response([
                 'properties' => ['api_key' => ['type' => 'string']],
-            ]);
-            $mock->shouldReceive('getWebsiteSettings')->andReturn([]);
-            $mock->shouldReceive('saveWebsiteSettings')->once();
-        });
+            ]),
+            '*/plugin/*/subscription/*/settings' => Http::sequence()
+                ->push(['success' => true]),
+        ]);
 
         Livewire::test(CrispSettings::class, [
             'websiteId' => 'test-website',
             'token' => 'test-token',
         ])
             ->set('settings.api_key', 'new-key')
-            ->call('save')
-            ->assertSet('successMessage', 'Settings saved successfully!')
-            ->assertSet('errorMessage', null);
+            ->call('save');
+
+        Http::assertSent(function (Request $request) {
+            return $request->url() === 'https://api.crisp.chat/v1/plugin/test-plugin/subscription/test-website/settings' &&
+                   $request->method() === 'PATCH' &&
+                   $request['api_key'] === 'new-key';
+        });
     }
 
     public function test_displays_error_on_save_failure(): void
     {
-        $this->mock(LaravelCrisp::class, function ($mock) {
-            $mock->shouldReceive('getPluginSchema')->andReturn([
+        Http::fake([
+            '*/plugin/*/settings/schema' => Http::response([
                 'properties' => ['api_key' => ['type' => 'string']],
-            ]);
-            $mock->shouldReceive('getWebsiteSettings')->andReturn([]);
-            $mock->shouldReceive('saveWebsiteSettings')->andThrow(new \Vntrungld\LaravelCrisp\Exceptions\CrispApiException('Invalid'));
-        });
+            ]),
+            '*/plugin/*/subscription/*/settings' => Http::sequence()
+                ->push(['error' => 'Invalid'], 400),
+        ]);
 
         Livewire::test(CrispSettings::class, [
             'websiteId' => 'test-website',
             'token' => 'test-token',
         ])
-            ->call('save')
-            ->assertSet('errorMessage', 'Crisp API Error: Invalid');
+            ->call('save');
+
+        Http::assertSent(function (Request $request) {
+            return $request->url() === 'https://api.crisp.chat/v1/plugin/test-plugin/subscription/test-website/settings';
+        });
     }
 
     public function test_validates_required_fields(): void
     {
-        $this->mock(LaravelCrisp::class, function ($mock) {
-            $mock->shouldReceive('getPluginSchema')->andReturn([
+        Http::fake([
+            '*/plugin/*/settings/schema' => Http::response([
                 'properties' => [
                     'api_key' => ['type' => 'string'],
                 ],
                 'required' => ['api_key'],
-            ]);
-            $mock->shouldReceive('getWebsiteSettings')->andReturn([]);
-        });
+            ]),
+            '*/plugin/*/subscription/*/settings' => Http::response(['data' => []]),
+        ]);
 
         Livewire::test(CrispSettings::class, [
             'websiteId' => 'test-website',
@@ -130,8 +140,8 @@ class CrispSettingsTest extends TestCase
 
     public function test_evaluates_conditional_field_visibility(): void
     {
-        $this->mock(LaravelCrisp::class, function ($mock) {
-            $mock->shouldReceive('getPluginSchema')->andReturn([
+        Http::fake([
+            '*/plugin/*/settings/schema' => Http::response([
                 'properties' => [
                     'enabled' => ['type' => 'boolean'],
                     'email' => [
@@ -142,9 +152,9 @@ class CrispSettingsTest extends TestCase
                         ],
                     ],
                 ],
-            ]);
-            $mock->shouldReceive('getWebsiteSettings')->andReturn([]);
-        });
+            ]),
+            '*/plugin/*/subscription/*/settings' => Http::response(['data' => []]),
+        ]);
 
         $component = Livewire::test(CrispSettings::class, [
             'websiteId' => 'test-website',
