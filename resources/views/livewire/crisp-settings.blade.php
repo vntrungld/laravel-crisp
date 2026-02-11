@@ -29,6 +29,11 @@
 
             <!-- Submit Button -->
             <div class="flex justify-end pt-4 border-t">
+                <button type="button"
+                        wire:click="$refresh"
+                        class="px-6 py-2 mr-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
+                    Refresh
+                </button>
                 <button type="submit"
                         wire:loading.attr="disabled"
                         class="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50">
