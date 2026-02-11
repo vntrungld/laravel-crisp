@@ -7,6 +7,9 @@ namespace Vntrungld\LaravelCrisp;
 use Crisp\CrispClient;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
+use Vntrungld\LaravelCrisp\Http\Livewire\CrispSettings;
+use Vntrungld\LaravelCrisp\Http\Middleware\ValidateCrispToken;
 
 class LaravelCrispServiceProvider extends ServiceProvider
 {
@@ -20,6 +23,17 @@ class LaravelCrispServiceProvider extends ServiceProvider
 
         // Load views
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'laravel-crisp');
+
+        // Publish views
+        $this->publishes([
+            __DIR__.'/../resources/views' => resource_path('views/vendor/laravel-crisp'),
+        ], 'laravel-crisp.views');
+
+        // Register Livewire components
+        Livewire::component('crisp-settings', CrispSettings::class);
+
+        // Register settings routes
+        $this->registerSettingsRoutes();
     }
 
     public function register(): void
@@ -29,6 +43,8 @@ class LaravelCrispServiceProvider extends ServiceProvider
         $this->app->singleton('laravel-crisp', function () {
             return new LaravelCrisp(new CrispClient);
         });
+
+        $this->app->singleton(Services\SchemaRenderer::class);
     }
 
     public function provides(): array
@@ -51,5 +67,14 @@ class LaravelCrispServiceProvider extends ServiceProvider
         ], function () {
             $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
         });
+    }
+
+    protected function registerSettingsRoutes(): void
+    {
+        Route::middleware(['web', ValidateCrispToken::class])
+            ->prefix(config('crisp.settings.route_path', 'crisp/settings'))
+            ->group(function () {
+                Route::get('/', CrispSettings::class)->name('crisp.settings');
+            });
     }
 }
