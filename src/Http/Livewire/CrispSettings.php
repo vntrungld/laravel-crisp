@@ -66,7 +66,6 @@ class CrispSettings extends Component
      */
     public function save(LaravelCrisp $crisp): void
     {
-        dd($this);
         try {
             // Validate against schema-derived rules
             $this->validate($this->buildValidationRules());
