@@ -14,8 +14,8 @@ use Vntrungld\LaravelCrisp\Services\SchemaRenderer;
 class CrispSettings extends Component
 {
     // Props from URL
-    public string $websiteId;
-    public string $token;
+    public string $websiteId = '';
+    public string $token = '';
 
     // Component state
     public array $schema = [];
@@ -28,8 +28,12 @@ class CrispSettings extends Component
     /**
      * Mount component
      */
-    public function mount(LaravelCrisp $crisp, SchemaRenderer $renderer): void
+    public function mount(LaravelCrisp $crisp, SchemaRenderer $renderer, ?string $websiteId = null, ?string $token = null): void
     {
+        // Get from parameters or request
+        $this->websiteId = $websiteId ?? request('website_id', '');
+        $this->token = $token ?? request('token', '');
+
         try {
             // Load schema
             $this->schema = $crisp->getPluginSchema();
@@ -193,6 +197,7 @@ class CrispSettings extends Component
      */
     public function render()
     {
-        return view('laravel-crisp::livewire.crisp-settings');
+        return view('laravel-crisp::livewire.crisp-settings')
+            ->layout('laravel-crisp::layouts.simple');
     }
 }
