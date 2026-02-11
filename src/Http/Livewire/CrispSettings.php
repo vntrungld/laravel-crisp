@@ -28,10 +28,8 @@ class CrispSettings extends Component
     /**
      * Mount component
      */
-    public function mount(?string $websiteId = null, ?string $token = null): void
+    public function mount(LaravelCrisp $crisp, SchemaRenderer $renderer, ?string $websiteId = null, ?string $token = null): void
     {
-        $crisp = app(LaravelCrisp::class);
-        $renderer = app(SchemaRenderer::class);
         // Get from parameters or request
         $this->websiteId = $websiteId ?? request('website_id', '');
         $this->token = $token ?? request('token', '');
