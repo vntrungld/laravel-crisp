@@ -198,6 +198,113 @@ protected $listen = [
 ];
 ```
 
+### Plugin Settings Page
+
+The package includes a dynamic settings page that embeds in the Crisp Dashboard. Settings are defined via JSON Schema in the Crisp Marketplace and automatically rendered as forms.
+
+#### Accessing the Settings Page
+
+The settings page is available at `/crisp/settings` and requires authentication via token:
+
+```
+https://yourapp.com/crisp/settings?token=xxx&website_id=yyy
+```
+
+Crisp automatically passes these parameters when loading the settings iframe.
+
+#### Supported Field Types
+
+The settings page dynamically supports all JSON Schema field types:
+
+- **String**: Text input, email, URL, password
+- **Number/Integer**: Numeric input with min/max validation
+- **Boolean**: Checkbox toggle
+- **Enum**: Select dropdown
+- **Textarea**: Multi-line text input
+- **Object**: Nested field groups
+- **Array**: Repeatable items with add/remove
+- **Conditional Fields**: Show/hide based on other field values
+
+#### Configuration
+
+Settings page configuration in `config/crisp.php`:
+
+```php
+'settings' => [
+    'route_path' => 'crisp/settings',
+    'token_cache_ttl' => 300, // Cache token validation for 5 minutes
+    'allowed_frame_origins' => [
+        'https://app.crisp.chat',
+        'https://app.crisp.im',
+    ],
+],
+```
+
+#### JSON Schema Example
+
+Define your settings schema in the Crisp Marketplace:
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "api_key": {
+      "type": "string",
+      "title": "API Key",
+      "description": "Your integration API key",
+      "maxLength": 100
+    },
+    "enable_notifications": {
+      "type": "boolean",
+      "title": "Enable Notifications",
+      "default": true
+    },
+    "notification_email": {
+      "type": "string",
+      "format": "email",
+      "title": "Notification Email",
+      "x-condition": {
+        "field": "enable_notifications",
+        "value": true
+      }
+    }
+  },
+  "required": ["api_key"]
+}
+```
+
+#### Conditional Fields
+
+Use `x-condition` to show/hide fields based on other values:
+
+```json
+{
+  "field": "enable_notifications",
+  "operator": "equals",
+  "value": true
+}
+```
+
+Supported operators: `equals`, `not_equals`, `in`, `not_in`
+
+#### Accessing Settings in Code
+
+Retrieve settings for a specific website:
+
+```php
+$settings = LaravelCrisp::getWebsiteSettings('website-id');
+$apiKey = $settings['api_key'] ?? null;
+```
+
+Save settings programmatically:
+
+```php
+LaravelCrisp::saveWebsiteSettings('website-id', [
+    'api_key' => 'new-key',
+    'enable_notifications' => true,
+]);
+```
+
 ### Crisp API Examples
 
 For detailed API documentation, refer to the [official Crisp API documentation](https://docs.crisp.chat/api/v1/).
