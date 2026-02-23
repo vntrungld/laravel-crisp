@@ -54,7 +54,7 @@ class SettingsControllerTest extends TestCase
     {
         $this->actingAs($this->user)
             ->get('/crisp/settings')
-            ->assertBadRequest();
+            ->assertStatus(400);
     }
 
     public function test_show_redirects_to_login_when_unauthenticated(): void
@@ -95,6 +95,6 @@ class SettingsControllerTest extends TestCase
     {
         $this->actingAs($this->user)
             ->post('/crisp/settings', ['api_key' => 'abc123'])
-            ->assertBadRequest();
+            ->assertStatus(400);
     }
 }
