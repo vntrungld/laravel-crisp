@@ -31,4 +31,21 @@ class SettingsController extends Controller
             ]);
         }
     }
+
+    public function update(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $websiteId = $request->query('website_id');
+
+        abort_if(! $websiteId, 400, 'website_id is required');
+
+        $data = $request->post();
+
+        try {
+            $this->service->save($websiteId, $data);
+
+            return redirect()->back()->with('success', 'Settings saved successfully.');
+        } catch (Throwable $e) {
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
+        }
+    }
 }

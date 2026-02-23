@@ -62,4 +62,39 @@ class SettingsControllerTest extends TestCase
         $this->get('/crisp/settings?website_id=test-website-id')
             ->assertRedirect('/login');
     }
+
+    public function test_update_redirects_back_with_success_flash(): void
+    {
+        $mockService = Mockery::mock(CrispSettingsService::class);
+        $mockService->shouldReceive('save')
+            ->with('test-website-id', ['api_key' => 'abc123'])
+            ->once();
+        $this->app->instance(CrispSettingsService::class, $mockService);
+
+        $this->actingAs($this->user)
+            ->from('/crisp/settings?website_id=test-website-id')
+            ->post('/crisp/settings?website_id=test-website-id', ['api_key' => 'abc123'])
+            ->assertRedirect()
+            ->assertSessionHas('success');
+    }
+
+    public function test_update_redirects_back_with_error_flash_when_api_throws(): void
+    {
+        $mockService = Mockery::mock(CrispSettingsService::class);
+        $mockService->shouldReceive('save')->andThrow(new RuntimeException('Save failed'));
+        $this->app->instance(CrispSettingsService::class, $mockService);
+
+        $this->actingAs($this->user)
+            ->from('/crisp/settings?website_id=test-website-id')
+            ->post('/crisp/settings?website_id=test-website-id', ['api_key' => 'abc123'])
+            ->assertRedirect()
+            ->assertSessionHas('error');
+    }
+
+    public function test_update_returns_400_when_website_id_missing(): void
+    {
+        $this->actingAs($this->user)
+            ->post('/crisp/settings', ['api_key' => 'abc123'])
+            ->assertBadRequest();
+    }
 }
