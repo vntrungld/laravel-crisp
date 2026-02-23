@@ -32,4 +32,24 @@ class CrispSettingsServiceTest extends TestCase
 
         $this->assertSame($settings, $service->get('website-id'));
     }
+
+    public function test_save_calls_save_subscription_settings(): void
+    {
+        $data = ['api_key' => 'new-value'];
+
+        $mockPluginSubs = Mockery::mock(PluginSubscriptions::class);
+        $mockPluginSubs->shouldReceive('saveSubscriptionSettings')
+            ->with('website-id', 'test-plugin-id', $data)
+            ->once()
+            ->andReturn([]);
+
+        $mockClient = Mockery::mock(CrispClient::class);
+        $mockClient->pluginSubscriptions = $mockPluginSubs;
+
+        $mockCrisp = Mockery::mock(LaravelCrispService::class);
+        $mockCrisp->shouldReceive('client')->andReturn($mockClient);
+
+        $service = new CrispSettingsService($mockCrisp);
+        $service->save('website-id', $data);
+    }
 }

@@ -17,4 +17,13 @@ class CrispSettingsService
             config('crisp.plugin_id')
         );
     }
+
+    public function save(string $websiteId, array $data): void
+    {
+        $this->crisp->client()->pluginSubscriptions->saveSubscriptionSettings(
+            $websiteId,
+            config('crisp.plugin_id'),
+            $data
+        );
+    }
 }
