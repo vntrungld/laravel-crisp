@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Vntrungld\LaravelCrisp\Http\Controllers;
 
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\View\View;
@@ -32,13 +33,13 @@ class SettingsController extends Controller
         }
     }
 
-    public function update(Request $request): \Illuminate\Http\RedirectResponse
+    public function update(Request $request): RedirectResponse
     {
         $websiteId = $request->query('website_id');
 
         abort_if(! $websiteId, 400, 'website_id is required');
 
-        $data = $request->post();
+        $data = collect($request->post())->except('_token')->all();
 
         try {
             $this->service->save($websiteId, $data);

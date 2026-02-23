@@ -7,7 +7,6 @@ namespace Vntrungld\LaravelCrisp;
 use Crisp\CrispClient;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
-use Vntrungld\LaravelCrisp\Services\CrispSettingsService;
 
 class LaravelCrispServiceProvider extends ServiceProvider
 {
@@ -29,9 +28,7 @@ class LaravelCrispServiceProvider extends ServiceProvider
             return new LaravelCrisp(new CrispClient);
         });
 
-        $this->app->singleton(CrispSettingsService::class, function ($app) {
-            return new CrispSettingsService($app->make('laravel-crisp'));
-        });
+        $this->app->alias('laravel-crisp', LaravelCrisp::class);
     }
 
     public function provides(): array
