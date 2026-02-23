@@ -286,12 +286,13 @@ composer test
 
 | Laravel Version | PHP Version | Package Support |
 |----------------|-------------|-----------------|
+| 8.x            | 8.1         | ✅              |
 | 9.x            | 8.1, 8.2    | ✅              |
 | 10.x           | 8.1, 8.2, 8.3 | ✅              |
 | 11.x           | 8.2, 8.3    | ✅              |
 | 12.x           | 8.2, 8.3    | ✅              |
 
-The **minimum supported Laravel version is 9.0**.
+The **minimum supported Laravel version is 8.0**.
 
 ## Security
 
