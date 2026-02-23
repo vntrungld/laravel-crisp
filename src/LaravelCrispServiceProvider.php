@@ -17,6 +17,7 @@ class LaravelCrispServiceProvider extends ServiceProvider
         }
 
         $this->bootRoutes();
+        $this->loadViewsFrom(__DIR__.'/../resources/views', 'laravel-crisp');
     }
 
     public function register(): void
@@ -26,6 +27,8 @@ class LaravelCrispServiceProvider extends ServiceProvider
         $this->app->singleton('laravel-crisp', function () {
             return new LaravelCrisp(new CrispClient);
         });
+
+        $this->app->alias('laravel-crisp', LaravelCrisp::class);
     }
 
     public function provides(): array
@@ -38,6 +41,10 @@ class LaravelCrispServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__.'/../config/crisp.php' => config_path('crisp.php'),
         ], 'laravel-crisp.config');
+
+        $this->publishes([
+            __DIR__.'/../resources/views' => resource_path('views/vendor/laravel-crisp'),
+        ], 'laravel-crisp.views');
     }
 
     protected function bootRoutes(): void
