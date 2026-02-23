@@ -7,6 +7,7 @@ namespace Vntrungld\LaravelCrisp;
 use Crisp\CrispClient;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Vntrungld\LaravelCrisp\Services\CrispSettingsService;
 
 class LaravelCrispServiceProvider extends ServiceProvider
 {
@@ -17,6 +18,7 @@ class LaravelCrispServiceProvider extends ServiceProvider
         }
 
         $this->bootRoutes();
+        $this->loadViewsFrom(__DIR__.'/../resources/views', 'laravel-crisp');
     }
 
     public function register(): void
@@ -25,6 +27,10 @@ class LaravelCrispServiceProvider extends ServiceProvider
 
         $this->app->singleton('laravel-crisp', function () {
             return new LaravelCrisp(new CrispClient);
+        });
+
+        $this->app->singleton(CrispSettingsService::class, function ($app) {
+            return new CrispSettingsService($app->make('laravel-crisp'));
         });
     }
 
@@ -38,6 +44,10 @@ class LaravelCrispServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__.'/../config/crisp.php' => config_path('crisp.php'),
         ], 'laravel-crisp.config');
+
+        $this->publishes([
+            __DIR__.'/../resources/views' => resource_path('views/vendor/laravel-crisp'),
+        ], 'laravel-crisp.views');
     }
 
     protected function bootRoutes(): void
